@@ -12,6 +12,7 @@ setup(
     data_files={},
     install_requires=[
         'reconchess',
+        'numpy',
         'torch',
         'torch-optimizer',
     ],
