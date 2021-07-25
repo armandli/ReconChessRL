@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from senseis.torch_modules.activation import relu_activation
-from senseis.torch_modules.residual_layer import ResidualLayer1DV5, ResidualLayer2DV3, downsampling1D, downsampling2DV2
+from senseis.torch_modules.residual_layer import ResidualLayer1DV5, ResidualLayer2DV3
 
 # Dueling Q Model
 class RCActionModel1(nn.Module):
@@ -15,11 +15,11 @@ class RCActionModel1(nn.Module):
         ResidualLayer2DV3(96, 128, 3, relu_activation, nn.BatchNorm2d),
     )
     self.alayers = nn.Sequential(
-        ResidualLayer1DVV5(128 * row_sz * col_sz, 8192, relu_activation, nn.LayerNorm),
+        ResidualLayer1DV5(128 * row_sz * col_sz, 8192, relu_activation, nn.LayerNorm),
         nn.Linear(8192, a_sz),
     )
     self.vlayers = nn.Sequential(
-        ResidualLayer1DVV5(128 * row_sz * col_sz, 4096, relu_activation, nn.LayerNorm),
+        ResidualLayer1DV5(128 * row_sz * col_sz, 4096, relu_activation, nn.LayerNorm),
         nn.Linear(4096, 1),
     )
 

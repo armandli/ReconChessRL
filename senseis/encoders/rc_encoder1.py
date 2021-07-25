@@ -1,6 +1,6 @@
 from typing import Optional, List, Tuple
 from reconchess import Color
-from reconchess.chess import Board, Piece, Move
+from chess import Board, Piece, Move, Square
 import numpy as np
 import torch
 from .rc_encoder_util import encode_move_type_dim1, decode_move_dim1, encode_initial_board2, update_state_oppo1, update_state_self1, update_sense1
@@ -16,7 +16,7 @@ class RCStateEncoder1:
 
   def init(self, my_color: Color, board: Board):
     self.mm, self.om = encode_initial_board2(my_color, board)
-    self.color = color
+    self.color = my_color
     # 0 is opponent, 1 is myself
     self.counts = [16, 16]
 
@@ -24,7 +24,7 @@ class RCStateEncoder1:
     self.om = update_sense1(self.om, sense_result)
 
   def move_update(self, taken_move: Optional[Move], captured_square: Optional[Square]):
-    if capture_square is not None:
+    if captured_square is not None:
       self.counts[0] -= 1
     self.om, self.mm = update_state_self1(self.om, self.mm, taken_move, captured_square)
 
@@ -72,7 +72,7 @@ class RCActionEncoder1:
 
   def encode(self, move: Move):
     m = torch.zeros(self.dim)
-    dim = encode_move_type_dim(move)
+    dim = encode_move_type_dim1(move)
     m[move.from_square * dim] = 1.
     return m
 

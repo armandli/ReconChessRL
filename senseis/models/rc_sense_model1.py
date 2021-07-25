@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from senseis.torch_modules.activation import relu_activation
-from senseis.torch_modules.residual_layer import ResidualLayer1DV5, ResidualLayer2DV3, downsampling1D, downsampling2DV2
+from senseis.torch_modules.residual_layer import ResidualLayer1DV5, ResidualLayer2DV3
 
 # Sense Policy Model
 class RCSenseModel1(nn.Module):

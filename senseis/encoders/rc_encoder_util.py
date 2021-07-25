@@ -1,5 +1,6 @@
-from reconchess import Color, Optional
-from reconchess.chess import Board, Piece, Move
+from typing import List, Tuple, Optional
+from reconchess import Color
+from chess import Board, Piece, Move, Square
 import torch
 
 # board positions displayed

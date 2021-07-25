@@ -1,14 +1,8 @@
 from typing import Optional, List, Tuple
 import random
 from reconchess import Color, Player, Square, WinReason, GameHistory
-from reconchess.chess import Board, Piece, Move
+from chess import Board, Piece, Move
 import torch
-
-#from senseis.encoders.rc_encoder1 import RCStateEncoder1, RCActionEncoder1, RCSenseEncoder1
-#from senseis.models.rc_action_model1 import RCActionModel1
-#from senseis.models.rc_sense_model1 import RCSenseModel1
-#from senseis.rewards.rc_sense_reward import rc_sense_reward1
-#from senseis.rewards.rc_action_reward import rc_action_reward1
 
 class RCQAgent1(Player):
   def __init__(self, state_encoder, action_encoder, sense_encoder, action_model, sense_model, action_exp, sense_exp, action_reward, sense_reward, device, epsilon):
@@ -59,7 +53,7 @@ class RCQAgent1(Player):
     if random.random() > self.epsilon:
       with torch.no_grad():
         cst_dev = cst.unsqueeze(0).to(self.device)
-        act = self.action_model(cst)
+        act = self.action_model(cst_dev)
         action = self.action_encoder.decode(act)[0]
         if action not in move_action:
           action = None
@@ -78,5 +72,5 @@ class RCQAgent1(Player):
 
   def handle_game_end(self, winner_color: Optional[Color], win_reason: Optional[WinReason], game_history: GameHistory):
     win = True if winner_color == self.color else False
-    reward = rc_action_reward1(self.self_capture_count, self.oppo_capture_count, True, win)
+    reward = self.action_reward(self.self_capture_count, self.oppo_capture_count, True, win)
     self.action_exp.append_terminal(reward)
