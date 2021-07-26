@@ -9,8 +9,8 @@ class RCActionModel1(nn.Module):
   def __init__(self, csz, row_sz, col_sz, a_sz):
     super(RCActionModel1, self).__init__()
     self.clayers = nn.Sequential(
-        ResidualLayer2DV3(csz, 24, 8, relu_activation, nn.BatchNorm2d),
-        ResidualLayer2DV3(24, 48, 5, relu_activation, nn.BatchNorm2d),
+        ResidualLayer2DV3(csz, 24, 5, relu_activation, nn.BatchNorm2d),
+        ResidualLayer2DV3(24, 48, 3, relu_activation, nn.BatchNorm2d),
         ResidualLayer2DV3(48, 96, 3, relu_activation, nn.BatchNorm2d),
         ResidualLayer2DV3(96, 128, 3, relu_activation, nn.BatchNorm2d),
     )
@@ -24,12 +24,21 @@ class RCActionModel1(nn.Module):
     )
 
   def forward(self, x):
+    print("gothere80")
     x = self.clayers(x)
+    print("gothere81")
+    x = self.clayers(x)
+    print("gothere82")
     x = torch.flatten(x, start_dim=1)
+    print("gothere83")
     v = x
     v = self.vlayers(v)
+    print("gothere84")
     a = x
     a = self.alayers(a)
-    mean_a = torch.nea(a, dim=1, keepdim=True)
+    print("gothere85")
+    mean_a = torch.mean(a, dim=1, keepdim=True)
+    print("gothere86")
     q = v + (a - mean_a)
+    print("gothere87")
     return q

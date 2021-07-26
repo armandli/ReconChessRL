@@ -7,7 +7,7 @@ class RCSenseEC:
     self.acts = []
     self.rewards = []
 
-  def append_st(self, cst, act, reward):
+  def append_st(self, cst, act):
     cst = cst.unsqueeze(0)
     self.csts.append(cst)
     self.acts.append(act)

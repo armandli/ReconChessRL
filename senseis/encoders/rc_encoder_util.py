@@ -86,6 +86,8 @@ def clear_oppo_prob(om, move: Move):
   return om
 
 def update_state_self1(om, mm, move: Move, capture: Optional[Square]):
+  if move is None:
+    return (om, mm)
   if capture is not None:
     om = clear_oppo_prob(om, move)
   fx, fy = move.from_square // 8, move.from_square % 8
@@ -107,7 +109,7 @@ def update_sense1(om, sense_result: List[Tuple[Square, Optional[Piece]]]):
       om[:,x,y] = 0.
     else:
         om[:,x,y] = 0.
-        om[piece-1,x,y] = 1.
+        om[piece.piece_type-1,x,y] = 1.
   return om
 
 MOVE_MAP = {

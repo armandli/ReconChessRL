@@ -10,13 +10,13 @@ class RCSenseModel1(nn.Module):
     super(RCSenseModel1, self).__init__()
     self.clayers = nn.Sequential(
         ResidualLayer2DV3(csz, 24,  3, relu_activation, nn.BatchNorm2d),
-        ResidualLayer2DV3(32,  48,  3, relu_activation, nn.BatchNorm2d),
+        ResidualLayer2DV3(24,  48,  3, relu_activation, nn.BatchNorm2d),
     )
     self.flayers = nn.Sequential(
         ResidualLayer1DV5(48 * row_sz * col_sz, 2048, relu_activation, nn.LayerNorm),
-        ResidualLayer1DV5(48 * row_sz * col_sz, 512, relu_activation, nn.LayerNorm),
+        ResidualLayer1DV5(2048, 512, relu_activation, nn.LayerNorm),
         nn.Linear(512, a_sz),
-        nn.Softmax(),
+        nn.Softmax(dim=1),
     )
 
   def forward(self, x):
