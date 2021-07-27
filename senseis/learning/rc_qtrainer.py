@@ -68,30 +68,28 @@ class RCQTrainer(RCSelfTrainer):
   def create_agent(self):
     action_ec = RCActionEC()
     sense_ec = RCSenseEC()
-    if path.exists(self.configuration.action_model_filename):
-      action_model = torch.load(self.configuration.action_model_filename,
-              self.configuration.device)
-    else:
-      action_model = RCActionModel1(*RCStateEncoder1().dimension(), RCActionEncoder1().dimension())
-    self.action_model = action_model
-    if path.exists(self.configuration.sense_model_filename):
-      sense_model = torch.load(self.configuration.sense_model_filename,
-              self.configuration.device)
-    else:
-      sense_model = RCSenseModel1(*RCStateEncoder1().dimension(), RCSenseEncoder1().dimension())
-    self.sense_model = sense_model
+    if self.sense_model is None:
+      if path.exists(self.configuration.action_model_filename):
+        self.action_model = torch.load(self.configuration.action_model_filename, map_location=self.configuration.device)
+      else:
+        self.action_model = RCActionModel1(*RCStateEncoder1().dimension(), RCActionEncoder1().dimension())
+    if self.action_model is None:
+      if path.exists(self.configuration.sense_model_filename):
+        self.sense_model = torch.load(self.configuration.sense_model_filename, map_location=self.configuration.device)
+      else:
+        self.sense_model = RCSenseModel1(*RCStateEncoder1().dimension(), RCSenseEncoder1().dimension())
     if self.configuration.action_model_filename:
       agent = RCQAgent1(
         RCStateEncoder1(),
         RCActionEncoder1(),
         RCSenseEncoder1(),
-        action_model,
-        sense_model,
+        self.action_model,
+        self.sense_model,
+        self.configuration.device,
         action_ec,
         sense_ec,
         rc_action_reward1,
         rc_sense_reward1,
-        self.configuration.device,
         self.configuration.epl_param.epsilon
     )
     self.action_ecs.append(action_ec)
@@ -119,6 +117,9 @@ class RCQTrainer(RCSelfTrainer):
     if episode == self.configuration.episodes - 1:
       torch.save(self.action_model, self.configuration.action_model_filename)
       torch.save(self.sense_model, self.configuration.sense_model_filename)
+    # clean up the experience buffer
+    self.action_ecs = []
+    self.sense_ecs = []
 
   def learn_sense(self, episode):
     sense_ec = combine_sense_ec(self.sense_ecs)

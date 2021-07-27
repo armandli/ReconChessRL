@@ -3,17 +3,20 @@ from reconchess import Color
 from chess import Board, Piece, Move, Square
 import torch
 
-# board positions displayed
+# board positions displayed if you're white
 # 63 62 .. 58 57
 # .     .     .
 # .      .    .
 # 7  6  .. 1  0
 
+# board position displayed if you're black is different
+
+
 def encode_initial_board1(my_color: Color, board: Board):
   m = torch.zeros(12, 8, 8)
   piece_map = board.piece_map()
   for (square, piece) in piece_map.items():
-    # P = 1 N = 2 B = 3 R = 4 K = 5 Q = 6
+    # P = 1 N = 2 B = 3 R = 4 K = 6 Q = 5
     dim = (piece.piece_type - 1) + int(piece.color == my_color) * 6
     m[dim, square // 8, square % 8] = 1.
   return m
@@ -23,7 +26,7 @@ def encode_initial_board2(my_color: Color, board: Board):
   mm = torch.zeros(6, 8, 8)
   piece_map = board.piece_map()
   for (square, piece) in piece_map.items():
-    # P = 1 N = 2 B = 3 R = 4 K = 5 Q = 6
+    # P = 1 N = 2 B = 3 R = 4 K = 6 Q = 5
     dim = (piece.piece_type - 1)
     if piece.color == my_color:
       mm[dim, square // 8, square % 8] = 1.

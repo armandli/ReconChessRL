@@ -5,7 +5,20 @@ from chess import Board, Piece, Move
 import torch
 
 class RCQAgent1(Player):
-  def __init__(self, state_encoder, action_encoder, sense_encoder, action_model, sense_model, action_exp, sense_exp, action_reward, sense_reward, device, epsilon):
+  def __init__(
+    self,
+    state_encoder,
+    action_encoder,
+    sense_encoder,
+    action_model,
+    sense_model,
+    device,
+    action_exp=None,
+    sense_exp=None,
+    action_reward=None,
+    sense_reward=None,
+    epsilon=0.
+  ):
     self.state_encoder = state_encoder
     self.action_encoder = action_encoder
     self.sense_encoder = sense_encoder
@@ -40,14 +53,16 @@ class RCQAgent1(Player):
       cst_dev = cst.unsqueeze(0).to(self.device)
       act = self.sense_model(cst_dev)
       action = self.sense_encoder.decode(act)[0]
-      self.sense_exp.append_st(cst, action)
+      if self.sense_exp is not None:
+        self.sense_exp.append_st(cst, action)
       return action
 
   def handle_sense_result(self, sense_result: List[Tuple[Square, Optional[Piece]]]):
     self.state_encoder.sense_update(sense_result)
-    nst = self.state_encoder.encode()
-    reward = self.sense_reward(self.sense_cst, nst)
-    self.sense_exp.append_post(reward)
+    if self.sense_exp is not None:
+      nst = self.state_encoder.encode()
+      reward = self.sense_reward(self.sense_cst, nst)
+      self.sense_exp.append_post(reward)
 
   def choose_move(self, move_action: List[Move], seconds_left: float) -> Optional[Move]:
     cst = self.state_encoder.encode()
@@ -60,7 +75,8 @@ class RCQAgent1(Player):
     else:
       action = random.choice(move_action)
       action_idx = self.action_encoder.action_index(action)
-    self.action_exp.append_st(cst, action_idx)
+    if self.action_exp is not None:
+      self.action_exp.append_st(cst, action_idx)
     if action in move_action:
       return action
     return None
@@ -69,11 +85,13 @@ class RCQAgent1(Player):
     if captured_opponent_piece:
       self.self_capture_count += 1
     self.state_encoder.move_update(taken_move, capture_square)
-    nst = self.state_encoder.encode()
-    reward = self.action_reward(self.self_capture_count, self.oppo_capture_count, False)
-    self.action_exp.append_post(nst, reward)
+    if self.action_exp is not None:
+      nst = self.state_encoder.encode()
+      reward = self.action_reward(self.self_capture_count, self.oppo_capture_count, False)
+      self.action_exp.append_post(nst, reward)
 
   def handle_game_end(self, winner_color: Optional[Color], win_reason: Optional[WinReason], game_history: GameHistory):
-    win = True if winner_color == self.color else False
-    reward = self.action_reward(self.self_capture_count, self.oppo_capture_count, True, win)
-    self.action_exp.append_terminal(reward)
+    if self.action_exp is not None:
+      win = True if winner_color == self.color else False
+      reward = self.action_reward(self.self_capture_count, self.oppo_capture_count, True, win)
+      self.action_exp.append_terminal(reward)
