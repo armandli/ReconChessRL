@@ -50,44 +50,30 @@ class RCQAgent1(Player):
     self.sense_exp.append_post(reward)
 
   def choose_move(self, move_action: List[Move], seconds_left: float) -> Optional[Move]:
-    print("gothere12")
     cst = self.state_encoder.encode()
-    print("gothere51 cst {} {}".format(cst.shape, cst))
     if random.random() > self.epsilon:
       with torch.no_grad():
         cst_dev = cst.unsqueeze(0).to(self.device)
-        print("gothere52")
         act = self.action_model(cst_dev)
-        print("gothere53 act {}".format(act.shape))
         action = self.action_encoder.decode(act)[0]
-        print("gothere54 action {}".format(action))
-        if action not in move_action:
-          action = None
-        print("gothere55 action {}".format(action))
+        action_idx = torch.argmax(act, dim=1)[0]
     else:
       action = random.choice(move_action)
-    print("gothere56 action {}".format(action))
-    self.action_exp.append_st(cst, action)
-    print("gothere5 action".format(action))
-    return action
+      action_idx = self.action_encoder.action_index(action)
+    self.action_exp.append_st(cst, action_idx)
+    if action in move_action:
+      return action
+    return None
 
   def handle_move_result(self, requested_move: Optional[Move], taken_move: Optional[Move], captured_opponent_piece: bool, capture_square: Optional[Square]):
-    print("gothere13")
     if captured_opponent_piece:
       self.self_capture_count += 1
-    print("gothere60 move {} capture {}".format(taken_move, capture_square))
     self.state_encoder.move_update(taken_move, capture_square)
-    print("gothere61")
     nst = self.state_encoder.encode()
-    print("gothere62")
     reward = self.action_reward(self.self_capture_count, self.oppo_capture_count, False)
-    print("gothere63")
     self.action_exp.append_post(nst, reward)
-    print("gothere6")
 
   def handle_game_end(self, winner_color: Optional[Color], win_reason: Optional[WinReason], game_history: GameHistory):
-    print("gothere14")
     win = True if winner_color == self.color else False
     reward = self.action_reward(self.self_capture_count, self.oppo_capture_count, True, win)
     self.action_exp.append_terminal(reward)
-    print("gothere7")

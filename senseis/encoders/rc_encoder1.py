@@ -3,7 +3,7 @@ from reconchess import Color
 from chess import Board, Piece, Move, Square
 import numpy as np
 import torch
-from .rc_encoder_util import encode_move_type_dim1, decode_move_dim1, encode_initial_board2, update_state_oppo1, update_state_self1, update_sense1
+from .rc_encoder_util import encode_move_type_dim1, decode_move_dim1, move_to_action_index1, encode_initial_board2, update_state_oppo1, update_state_self1, update_sense1
 
 class RCStateEncoder1:
   def __init__(self):
@@ -78,7 +78,7 @@ class RCActionEncoder1:
 
   def decode(self, m):
     max_idx = torch.argmax(m, dim=1)
-    max_idx = max_idx.numpy().to_list()
+    max_idx = max_idx.numpy().tolist()
     actions = []
     for idx in max_idx:
       move_square = idx // 64
@@ -86,6 +86,9 @@ class RCActionEncoder1:
       move = decode_move_dim1(move_square, move_type)
       actions.append(move)
     return actions
+
+  def action_index(self, move: Move):
+    return move_to_action_index1(move)
 
   def dimension(self):
     return self.dim

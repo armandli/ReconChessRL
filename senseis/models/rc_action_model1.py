@@ -24,21 +24,12 @@ class RCActionModel1(nn.Module):
     )
 
   def forward(self, x):
-    print("gothere80")
     x = self.clayers(x)
-    print("gothere81")
-    x = self.clayers(x)
-    print("gothere82")
     x = torch.flatten(x, start_dim=1)
-    print("gothere83")
     v = x
     v = self.vlayers(v)
-    print("gothere84")
     a = x
     a = self.alayers(a)
-    print("gothere85")
     mean_a = torch.mean(a, dim=1, keepdim=True)
-    print("gothere86")
     q = v + (a - mean_a)
-    print("gothere87")
     return q

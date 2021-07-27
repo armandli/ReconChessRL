@@ -46,7 +46,7 @@ def update_state_oppo1(om, mm, capture: Optional[Square], oppo_piece_count):
     om[0,cx,cy] = 0.5 # pawn special
     return (om, mm)
   else:
-    om = board_decay1(om, mm, 1. / oppo_piece_count)
+    om = board_decay1(om, mm, 1. / oppo_piece_count / 64.)
     return (om, mm)
 
 # determine the row diff and col diff per path square update
@@ -275,9 +275,18 @@ def decode_move_dim1(from_square, move_type):
   x,  y  = from_square // 8, from_square % 8
   dx, dy = INV_MOVE_MAP[move_type]
   to_square = (x + dx) * 8 + y + dy
+  # invalid move, return None
+  if to_square <= 0 or to_square >= 64:
+    return None
   #ignore underpromotion and promotion
   return Move(from_square, to_square)
 
+def move_to_action_index1(move: Move):
+  frow, fcol = move.from_square // 8, move.from_square % 8
+  trow, tcol = move.to_square // 8, move.to_square % 8
+  rowd, cold = trow - frow, tcol - fcol
+  move_dim = MOVE_MAP[(rowd, cold)]
+  return move.from_square * 64 + move_dim
 
 ##TODO: what if they are invalid moves
 #def pawn_init_move_t(pc):

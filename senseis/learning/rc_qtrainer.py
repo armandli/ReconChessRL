@@ -70,13 +70,13 @@ class RCQTrainer(RCSelfTrainer):
     sense_ec = RCSenseEC()
     if path.exists(self.configuration.action_model_filename):
       action_model = torch.load(self.configuration.action_model_filename,
-              self.device)
+              self.configuration.device)
     else:
       action_model = RCActionModel1(*RCStateEncoder1().dimension(), RCActionEncoder1().dimension())
     self.action_model = action_model
     if path.exists(self.configuration.sense_model_filename):
       sense_model = torch.load(self.configuration.sense_model_filename,
-              self.device)
+              self.configuration.device)
     else:
       sense_model = RCSenseModel1(*RCStateEncoder1().dimension(), RCSenseEncoder1().dimension())
     self.sense_model = sense_model
@@ -98,7 +98,9 @@ class RCQTrainer(RCSelfTrainer):
     self.sense_ecs.append(sense_ec)
     return agent
 
-  def should_learn(self):
+  def should_learn(self, episode):
+    if episode == self.configuration.episodes - 1:
+      return True
     action_size = sum([ec.size() for ec in self.action_ecs])
     sense_size = sum([ec.size() for ec in self.sense_ecs])
     if action_size >= self.configuration.eb_size and sense_size >= self.configuration.eb_size:
@@ -114,25 +116,27 @@ class RCQTrainer(RCSelfTrainer):
       sense_model_snapshot_filename = "{}_{}.pt".format(self.configuration.sense_model_snapshot_prefix, self.snapshot_count)
       torch.save(self.action_model, action_model_snapshot_filename)
       torch.save(self.sense_model, sense_model_snapshot_filename)
+    if episode == self.configuration.episodes - 1:
+      torch.save(self.action_model, self.configuration.action_model_filename)
+      torch.save(self.sense_model, self.configuration.sense_model_filename)
 
   def learn_sense(self, episode):
     sense_ec = combine_sense_ec(self.sense_ecs)
     sense_eb = sense_ec.to_dataset()
-    sense_loader = data.DataLoader(sense_eb, batch_size=self.params.batchsize, shuffle=True, pin_memory=True, num_workers=0)
+    sense_loader = data.DataLoader(sense_eb, batch_size=self.configuration.batchsize, shuffle=True, pin_memory=True, num_workers=0)
     optimizer = self.sense_optimizer()
     loss = self.sense_loss()
     self.sense_model.train()
     for e in range(self.configuration.iterations):
       for i, (cs, a, r) in enumerate(sense_loader):
         optimizer.zero_grad()
-        cs, a, r = cs.to(self.device), a.to(self.device), r.to(self.device)
-        mean_r = torch.mean(r)
+        cs, a, r = cs.to(self.configuration.device), a.to(self.configuration.device), r.to(self.configuration.device)
         pi = self.sense_model(cs)
         pi = torch.index_select(pi, 1, a).diagonal()
-        l = loss(pi, r - mean_r, self.params.pg_epsilon)
+        l = loss(pi, r, self.configuration.pg_epsilon)
         l.backward()
         optimizer.step()
-        self.reporeter.train_sense_gather(episode, i, len(sense_eb), l.item())
+        self.reporter.train_sense_gather(episode, i, len(sense_eb), l.item())
 
   def sense_optimizer(self):
     return Adam(
@@ -147,7 +151,7 @@ class RCQTrainer(RCSelfTrainer):
   def learn_action(self, episode):
     action_ec = combine_action_ec(self.action_ecs)
     action_eb = action_ec.to_dataset()
-    action_loader = data.DataLoader(action_eb, batch_size=self.params.batchsize, shuffle=True, pin_memory=True, num_workers=0)
+    action_loader = data.DataLoader(action_eb, batch_size=self.configuration.batchsize, shuffle=True, pin_memory=True, num_workers=0)
     optimizer = self.action_optimizer()
     loss = self.action_loss()
     tmodel = RCActionModel1(*RCStateEncoder1().dimension(), RCActionEncoder1().dimension())
@@ -162,7 +166,7 @@ class RCQTrainer(RCSelfTrainer):
           tmodel.eval()
           tc_step_count = 0
         optimizer.zero_grad()
-        cs, ns, a, r, t = cs.to(self.device), ns.to(self.device), a.to(self.device), r.to(self.device), t.to(self.device)
+        cs, ns, a, r, t = cs.to(self.configuration.device), ns.to(self.configuration.device), a.to(self.configuration.device), r.to(self.configuration.device), t.to(self.configuration.device)
 
         with torch.no_grad():
           self.action_model.eval()
@@ -180,7 +184,7 @@ class RCQTrainer(RCSelfTrainer):
         l = loss(oqval, target)
         l.backward()
         optimizer.step()
-        self.reporter.report_action_gather(episode, i, len(action_eb), l.item())
+        self.reporter.train_action_gather(episode, i, len(action_eb), l.item())
         tc_step_count += 1
     self.configuration.epl_param = epsilon_decay(self.configuration.epl_param)
 
