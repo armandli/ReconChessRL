@@ -82,7 +82,7 @@ def clear_oppo_prob(om, move: Move):
   n = move_squares(rowd, cold)
   for i in range(n):
     x, y = frow + i * srow, fcol + i * scol
-    om[0:6, x, y] = 0.
+    om[:, x, y] = 0.
   return om
 
 def update_state_self1(om, mm, move: Move, capture: Optional[Square]):
@@ -92,12 +92,12 @@ def update_state_self1(om, mm, move: Move, capture: Optional[Square]):
     om = clear_oppo_prob(om, move)
   fx, fy = move.from_square // 8, move.from_square % 8
   tx, ty = move.to_square // 8, move.to_square % 8
-  mm[6:12, tx, ty] = mm[6:12, fx, fy]
-  mm[6:12, fx, fy] = 0.
+  mm[:, tx, ty] = mm[:, fx, fy]
+  mm[:, fx, fy] = 0.
   # if the piece is a pawn and pawn gets promoted
   if move.promotion is not None:
-    mm[6, tx, ty] = 0.
-    mm[5 + move.promotion, tx, ty] = 1.
+    mm[0, tx, ty] = 0.
+    mm[move.promotion, tx, ty] = 1.
   return (om, mm)
 
 # if a piece is detected, its prob on om is set to 1, otherwise 0 for the
