@@ -9,18 +9,17 @@ class RCActionModel1(nn.Module):
   def __init__(self, csz, row_sz, col_sz, a_sz):
     super(RCActionModel1, self).__init__()
     self.clayers = nn.Sequential(
-        ResidualLayer2DV3(csz, 24, 5, relu_activation, nn.BatchNorm2d),
-        ResidualLayer2DV3(24, 48, 3, relu_activation, nn.BatchNorm2d),
+        ResidualLayer2DV3(csz, 24, 7, relu_activation, nn.BatchNorm2d),
+        ResidualLayer2DV3(24, 48, 5, relu_activation, nn.BatchNorm2d),
         ResidualLayer2DV3(48, 96, 3, relu_activation, nn.BatchNorm2d),
-        ResidualLayer2DV3(96, 128, 3, relu_activation, nn.BatchNorm2d),
     )
     self.alayers = nn.Sequential(
-        ResidualLayer1DV5(128 * row_sz * col_sz, 8192, relu_activation, nn.LayerNorm),
-        nn.Linear(8192, a_sz),
+        ResidualLayer1DV5(96* row_sz * col_sz, 4096, relu_activation, nn.LayerNorm),
+        nn.Linear(4096, a_sz),
     )
     self.vlayers = nn.Sequential(
-        ResidualLayer1DV5(128 * row_sz * col_sz, 4096, relu_activation, nn.LayerNorm),
-        nn.Linear(4096, 1),
+        ResidualLayer1DV5(96* row_sz * col_sz, 1024, relu_activation, nn.LayerNorm),
+        nn.Linear(1024, 1),
     )
 
   def forward(self, x):

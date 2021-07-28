@@ -68,12 +68,12 @@ class RCQTrainer(RCSelfTrainer):
   def create_agent(self):
     action_ec = RCActionEC()
     sense_ec = RCSenseEC()
-    if self.sense_model is None:
+    if self.action_model is None:
       if path.exists(self.configuration.action_model_filename):
         self.action_model = torch.load(self.configuration.action_model_filename, map_location=self.configuration.device)
       else:
         self.action_model = RCActionModel1(*RCStateEncoder1().dimension(), RCActionEncoder1().dimension())
-    if self.action_model is None:
+    if self.sense_model is None:
       if path.exists(self.configuration.sense_model_filename):
         self.sense_model = torch.load(self.configuration.sense_model_filename, map_location=self.configuration.device)
       else:
