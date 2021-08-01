@@ -1,5 +1,4 @@
 from os import path
-from dataclasses import dataclass
 import torch
 from torch import nn
 from torch.utils import data
@@ -9,50 +8,16 @@ from .rc_trainer import RCSelfTrainer
 
 from senseis.collectors.rc_sense_eb import RCSenseEC, RCSenseEB, combine_sense_ec
 from senseis.collectors.rc_action_eb import RCActionEC, RCActionEB, combine_action_ec
-from senseis.encoders.rc_encoder1 import RCStateEncoder1, RCActionEncoder1, RCSenseEncoder1
-from senseis.models.rc_action_model1 import RCActionModel1
+from senseis.encoders.rc_encoder2 import RCStateEncoder2, RCActionEncoder2, RCSenseEncoder2
+from senseis.models.rc_action_model2 import RCActionModel2
 from senseis.models.rc_sense_model1 import RCSenseModel1
 from senseis.rewards.rc_sense_reward import rc_sense_reward1
 from senseis.rewards.rc_action_reward import rc_action_reward1
-from senseis.agents.rc_qagent1 import RCQAgent1
+from senseis.agents.rc_qagent2 import RCQAgent2
 from senseis.torch_modules.loss import PGError
+from senseis.learning.rc_qconfig import EGParams, epsilon_decay, QConfig
 
-@dataclass
-class EGParams:
-  epsilon_step: float
-  epsilon_scale: float
-  epsilon_max: float
-  epsilon_min: float
-  epsilon: float
-
-def epsilon_decay(param: EGParams):
-  param.epsilon = min(
-    param.epsilon_max,
-    1. / (param.epsilon_step / param.epsilon_scale + 1. / param.epsilon_max) + param.epsilon_min
-  )
-  param.epsilon_step += 1
-  return param
-
-@dataclass
-class QConfig:
-  device: torch.device
-  action_model_filename: str
-  sense_model_filename: str
-  episodes: int
-  iterations: int
-  eb_size: int
-  batchsize: int
-  tc_steps: int
-  learning_rate: float
-  weight_decay: float
-  gamma: float
-  pg_epsilon: float
-  epl_param: EGParams
-  action_model_snapshot_prefix: str = None
-  sense_model_snapshot_prefix: str = None
-  snapshot_frequency: int = 0
-
-class RCQTrainer(RCSelfTrainer):
+class RCQTrainer2(RCSelfTrainer):
   def __init__(self, config: QConfig, reporter):
     self.configuration = config
     self.action_ecs = []
@@ -72,17 +37,17 @@ class RCQTrainer(RCSelfTrainer):
       if path.exists(self.configuration.action_model_filename):
         self.action_model = torch.load(self.configuration.action_model_filename, map_location=self.configuration.device)
       else:
-        self.action_model = RCActionModel1(*RCStateEncoder1().dimension(), RCActionEncoder1().dimension())
+        self.action_model = RCActionModel2(*RCStateEncoder2.dimension(), RCActionEncoder2.dimension())
     if self.sense_model is None:
       if path.exists(self.configuration.sense_model_filename):
         self.sense_model = torch.load(self.configuration.sense_model_filename, map_location=self.configuration.device)
       else:
-        self.sense_model = RCSenseModel1(*RCStateEncoder1().dimension(), RCSenseEncoder1().dimension())
+        self.sense_model = RCSenseModel1(*RCStateEncoder2.dimension(), RCSenseEncoder2.dimension())
     if self.configuration.action_model_filename:
-      agent = RCQAgent1(
-        RCStateEncoder1(),
-        RCActionEncoder1(),
-        RCSenseEncoder1(),
+      agent = RCQAgent2(
+        RCStateEncoder2(),
+        RCActionEncoder2(),
+        RCSenseEncoder2(),
         self.action_model,
         self.sense_model,
         self.configuration.device,
@@ -155,14 +120,14 @@ class RCQTrainer(RCSelfTrainer):
     action_loader = data.DataLoader(action_eb, batch_size=self.configuration.batchsize, shuffle=True, pin_memory=True, num_workers=0)
     optimizer = self.action_optimizer()
     loss = self.action_loss()
-    tmodel = RCActionModel1(*RCStateEncoder1().dimension(), RCActionEncoder1().dimension())
+    tmodel = RCActionModel2(*RCStateEncoder2.dimension(), RCActionEncoder2.dimension())
     tmodel.load_state_dict(self.action_model.state_dict())
     tmodel.eval()
     tc_step_count = 0
     for e in range(self.configuration.iterations):
       for i, (cs, ns, a, r, t) in enumerate(action_loader):
         if tc_step_count >= self.configuration.tc_steps:
-          tmodel = RCActionModel1(*RCStateEncoder1().dimension(), RCActionEncoder1().dimension())
+          tmodel = RCActionModel2(*RCStateEncoder2.dimension(), RCActionEncoder2.dimension())
           tmodel.load_state_dict(self.action_model.state_dict())
           tmodel.eval()
           tc_step_count = 0

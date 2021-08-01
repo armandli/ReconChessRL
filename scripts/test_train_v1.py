@@ -1,5 +1,6 @@
 import torch
-from senseis.learning.rc_qtrainer import EGParams, QConfig, RCQTrainer
+from senseis.learning.rc_qconfig import EGParams, QConfig
+from senseis.learning.rc_qtrainer1 import RCQTrainer1
 from senseis.reporters.rc_reporter import RCEpisodicReporter
 
 device = torch.device("cpu")
@@ -27,5 +28,5 @@ config = QConfig(
 )
 reporter = RCEpisodicReporter(config.batchsize, 1, 1)
 
-trainer = RCQTrainer(config, reporter)
+trainer = RCQTrainer1(config, reporter)
 trainer.train()

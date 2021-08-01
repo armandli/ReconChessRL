@@ -6,13 +6,14 @@ import torch
 from .rc_encoder_util import encode_move_type_dim1, decode_move_dim1, move_to_action_index1, encode_initial_board2, update_state_oppo1, update_state_self1, update_sense1
 
 class RCStateEncoder1:
+  # 6 types of pieces per player, 8 by 8 board
+  dim = (12, 8, 8)
+
   def __init__(self):
     self.om = None
     self.mm = None
     self.color = None
     self.counts = None
-    # 6 types of pieces per player, 8 by 8 board
-    self.dim = (12, 8, 8)
 
   def init(self, my_color: Color, board: Board):
     self.mm, self.om = encode_initial_board2(my_color, board)
@@ -37,13 +38,16 @@ class RCStateEncoder1:
     m = torch.cat([self.om, self.mm], dim=0)
     return m
 
-  def dimension(self):
-    return self.dim
+  @staticmethod
+  def dimension():
+    return RCStateEncoder1.dim
 
 class RCSenseEncoder1:
+  # 64 sense actions, one per each square
+  dim = 64
+
   def __init__(self):
-    # 64 sense actions, one per each square
-    self.dim = 64
+    pass
 
   def encode(self, action: Square):
     m = torch.zeros(self.dim)
@@ -57,8 +61,9 @@ class RCSenseEncoder1:
       actions.append(action_idx)
     return actions
 
-  def dimension(self):
-    return self.dim
+  @staticmethod
+  def dimension():
+    return RCSenseEncoder1.dim
 
 # 4096 moves, in 8 x 8 x 64 = 4096 dimensions
 # 8 x 8 describes the location of the piece
@@ -67,13 +72,15 @@ class RCSenseEncoder1:
 # 8 planes encode knight moves
 # we ignore underpromotions and promotions
 class RCActionEncoder1:
+  dim = 4096
+
   def __init__(self):
-    self.dim = 4096
+    pass
 
   def encode(self, move: Move):
     m = torch.zeros(self.dim)
-    dim = encode_move_type_dim1(move)
-    m[move.from_square * dim] = 1.
+    d = encode_move_type_dim1(move)
+    m[move.from_square * d] = 1.
     return m
 
   def decode(self, m):
@@ -90,5 +97,6 @@ class RCActionEncoder1:
   def action_index(self, move: Move):
     return move_to_action_index1(move)
 
-  def dimension(self):
-    return self.dim
+  @staticmethod
+  def dimension():
+    return RCActionEncoder1.dim
