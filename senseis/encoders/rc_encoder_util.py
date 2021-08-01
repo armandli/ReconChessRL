@@ -77,7 +77,7 @@ def update_state_oppo1(om, mm, capture: Optional[Square], oppo_piece_count):
     om[0,max(cx-1,0),cy] += 0.5
     return (om, mm)
   else:
-    om = board_decay1(om, mm, 1. / oppo_piece_count / 64.)
+    om = board_decay1(om, mm, 1. / max(oppo_piece_count, 1) / 64.)
     return (om, mm)
 
 def update_state_oppo2(om, mm, capture: Optional[Square], oppo_piece_count, my_color: Color):
@@ -93,7 +93,7 @@ def update_state_oppo2(om, mm, capture: Optional[Square], oppo_piece_count, my_c
     om[0,max(cx-1,0),cy] += 0.5
     return (om, mm)
   else:
-    om = board_decay1(om, mm, 1. / oppo_piece_count / 64.)
+    om = board_decay1(om, mm, 1. / max(oppo_piece_count, 1) / 64.)
     return (om, mm)
 
 # determine the row diff and col diff per path square update
