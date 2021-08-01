@@ -196,6 +196,7 @@ def update_sense2(om, sense_result: List[Tuple[Square, Optional[Piece]]], my_col
       else:
         om[:,x,y] = 0.
         om[piece.piece_type-1,x,y] = 1.
+  return om
 
 MOVE_MAP = {
   # N

@@ -26,7 +26,8 @@ class RCSelfTrainer(ABC):
       game =LocalGame(900)
       try:
         _, _, _ = play_local_game(agent1, agent2, game=game)
-      except:
+      except Exception as e:
+        print("Exception {}".format(e))
         game.end()
         return
       if self.should_learn(e):
