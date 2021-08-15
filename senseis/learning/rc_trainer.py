@@ -25,7 +25,8 @@ class RCSelfTrainer(ABC):
       agent2 = self.create_agent()
       game =LocalGame(900)
       try:
-        _, _, _ = play_local_game(agent1, agent2, game=game)
+        winner, win_reason, history = play_local_game(agent1, agent2, game=game)
+        print("winner {} win reason {}".format(winner, win_reason))
       except Exception as e:
         print("Exception {}".format(e))
         game.end()

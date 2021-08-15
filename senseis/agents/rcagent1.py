@@ -4,17 +4,18 @@ from reconchess import Color, Player, Square, WinReason, GameHistory
 from chess import Board, Piece, Move
 import torch
 
-from .rc_qagent1 import RCQAgent1
 from senseis.encoders.rc_encoder1 import RCStateEncoder1, RCActionEncoder1, RCSenseEncoder1
 from senseis.models.rc_sense_model1 import RCSenseModel1
 from senseis.models.rc_action_model1 import RCActionModel1
+
+import senseis.agents.rc_qagent1 as agent
 
 class RCAgent1(Player):
   def __init__(self):
     device = torch.device('cpu')
     action_model = torch.load('models/rc_action_model1.pt', map_location=device)
     sense_model = torch.load('models/rc_sense_model1.pt', map_location=device)
-    self.agent = RCQAgent1(
+    self.agent = agent.RCQAgent1(
       RCStateEncoder1(),
       RCActionEncoder1(),
       RCSenseEncoder1(),
@@ -27,7 +28,7 @@ class RCAgent1(Player):
     self.agent.handle_game_start(color, board, opponent_name)
 
   def handle_opponent_move_result(self, captured_my_piece: bool, capture_square: Optional[Square]):
-    self.agent.handle_opponent_move_result(captured_my_oiece, capture_square)
+    self.agent.handle_opponent_move_result(captured_my_piece, capture_square)
 
   def choose_sense(self, sense_action: List[Square], move_action: List[Move], seconds_left: float) -> Optional[Square]:
     return self.agent.choose_sense(sense_action, move_action, seconds_left)

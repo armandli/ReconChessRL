@@ -5,11 +5,15 @@ import numpy as np
 import torch
 from .rc_encoder_util import encode_move_type_dim3, decode_move_dim3, move_to_action_index3, encode_initial_board3, update_state_oppo2, update_state_self2, update_sense2, MOVE_MAP_SIZE_TOTAL
 
-class RCStateEncoder2:
-  # 6 types of pieces per player, 8 by 8 board, 1 dim for color
-  dim = (13, 8, 8)
+# adding in history as part of the state encoding
+class RCStateEncoder3:
+  # add in one history state frame from both sides = 6 * 2 * 2, add 1 dim for color, 8 by 8 board
+  dim = (25, 8, 8)
 
   def __init__(self):
+    # previous board tensor
+    self.omp = None
+    self.mmp = None
     self.om = None
     self.mm = None
     self.color = None
@@ -27,11 +31,17 @@ class RCStateEncoder2:
   def move_update(self, taken_move: Optional[Move], captured_square: Optional[Square]):
     if captured_square is not None:
       self.counts[0] -= 1
+    if not self.color: # black move second
+      #TODO: make sure this is hard copy, not soft copy
+      self.omp, self.mmp = self.om, self.mm
     self.om, self.mm = update_state_self2(self.om, self.mm, taken_move, captured_square, self.color)
 
   def op_move_update(self, capture_square: Optional[Square]):
     if capture_square is not None:
       self.counts[1] -= 1
+    if self.color: # white move first
+      #TODO: make sure this is hard copy, not soft copy
+      self.omp, self.mmp = self.om, self.mm
     self.om, self.mm = update_state_oppo2(self.om, self.mm, capture_square, self.counts[0], self.color)
 
   def encode(self):
@@ -39,52 +49,23 @@ class RCStateEncoder2:
       cm = torch.ones(1, 8, 8)
     else:
       cm = torch.zeros(1, 8, 8)
-    m = torch.cat([self.om, self.mm, cm], dim=0)
-    return m
-
-  @staticmethod
-  def dimension():
-    return RCStateEncoder2.dim
-
-class RCSenseEncoder2:
-  dim = 64
-
-  def __init__(self):
-    self.color = None
-
-  def init(self, my_color: Color, _):
-    self.color = my_color
-
-  def encode(self, action: Square):
-    if not self.color: # black
-      action = 63 - action
-    m = torch.zeros(self.dim)
-    m[action] = 1.
-    return m
-
-  def decode(self, m):
-    actions = []
-    if not self.color: # black
-      for i in range(m.shape[0]):
-        action_idx = np.random.choice(self.dim, p=m[i].numpy())
-        action_idx = 63 - action_idx
-        actions.append(action_idx)
+    if self.omp is None:
+      omp = self.om
     else:
-      for i in range(m.shape[0]):
-        action_idx = np.random.choice(self.dim, p=m[i].numpy())
-        actions.append(action_idx)
-    return actions
+      omp = self.omp
+    if self.mmp is None:
+      mmp = self.mm
+    else:
+      mmp = self.mmp
+    m = torch.cat([omp, mmp, self.om, self.mm, cm], dim=0)
+    return m
 
   @staticmethod
   def dimension():
-    return RCSenseEncoder2.dim
+    return RCStateEncoder3.dim
 
-# 1792 moves, eliminated all moves that would go to invalid square
-# this means the number of moves per square is different, and the move
-# set per square is also different for each square; there are still
-# invalid moves however, as the move piece can still limit what moves
-# are valid
-class RCActionEncoder2:
+# Policy Gradient Model action encoder/decoder using 1792 move dim
+class RCActionEncoder3:
   dim = MOVE_MAP_SIZE_TOTAL
 
   def __init__(self):
@@ -100,11 +81,10 @@ class RCActionEncoder2:
     return m
 
   def decode(self, m):
-    max_idx = torch.argmax(m, dim=1)
-    max_idx = max_idx.numpy().tolist()
     actions = []
-    for idx in max_idx:
-      move = decode_move_dim3(idx, self.color)
+    for i in range(m.shape[0]):
+      action_idx = np.random.choice(self.dim, p=m[i].numpy())
+      move = decode_move_dim3(action_idx)
       actions.append(move)
     return actions
 
@@ -113,4 +93,4 @@ class RCActionEncoder2:
 
   @staticmethod
   def dimension():
-    return RCActionEncoder2.dim
+    return RCActionEncoder3.dim

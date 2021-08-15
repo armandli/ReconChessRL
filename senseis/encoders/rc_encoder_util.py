@@ -87,7 +87,7 @@ def update_state_oppo2(om, mm, capture: Optional[Square], oppo_piece_count, my_c
     else:
       c = capture
     cx, cy = c // 8, c % 8
-    mm[:  cx, cy] = 0.
+    mm[:, cx, cy] = 0.
     om[1:,cx, cy] = 1.
     om[0, cx, cy] = 0.5 # pawn special
     om[0,max(cx-1,0),cy] += 0.5
@@ -95,6 +95,17 @@ def update_state_oppo2(om, mm, capture: Optional[Square], oppo_piece_count, my_c
   else:
     om = board_decay1(om, mm, 1. / max(oppo_piece_count, 1) / 64.)
     return (om, mm)
+
+# remove all speculative probability change, only keep the definite
+def update_state_oppo3(om, mm, capture: Optional[Square], my_color: Color):
+  if capture is not None:
+    if not my_color: # black
+      c = 63 - capture
+    else:
+      c = capture
+    cx, cy = c // 8, c % 8
+    mm[:, cx, cy] = 0.
+  return (om, mm)
 
 # determine the row diff and col diff per path square update
 def move_step(rowd, cold):

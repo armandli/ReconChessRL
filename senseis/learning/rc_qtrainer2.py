@@ -43,8 +43,7 @@ class RCQTrainer2(RCSelfTrainer):
         self.sense_model = torch.load(self.configuration.sense_model_filename, map_location=self.configuration.device)
       else:
         self.sense_model = RCSenseModel1(*RCStateEncoder2.dimension(), RCSenseEncoder2.dimension())
-    if self.configuration.action_model_filename:
-      agent = RCQAgent2(
+    agent = RCQAgent2(
         RCStateEncoder2(),
         RCActionEncoder2(),
         RCSenseEncoder2(),
