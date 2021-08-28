@@ -107,6 +107,25 @@ def update_state_oppo3(om, mm, capture: Optional[Square], my_color: Color):
     mm[:, cx, cy] = 0.
   return (om, mm)
 
+OPPO_ACTION_EVENT_DIM1 = 64 + 1 + 1
+
+def encode_oppo_result1(capture: Optional[Square], my_color: Color):
+  m = torch.zeros(OPPO_ACTION_EVENT_DIM1)
+  if capture is not None:
+    if not my_color: # black
+      c = 63 - capture
+    else:
+      c = capture
+    m[c] = 1.
+  else:
+    m[64] = 1.
+  return m
+
+def encode_null_oppo_move1():
+  m = torch.zeros(OPPO_ACTION_EVENT_DIM1)
+  m[65] = 1.
+  return m
+
 # determine the row diff and col diff per path square update
 def move_step(rowd, cold):
   # knight move
@@ -176,6 +195,28 @@ def update_state_self2(om, mm, move: Move, capture: Optional[Square], my_color: 
     mm[move.promotion-1, tx, ty] = 1.
   return (om, mm)
 
+SELF_ACTION_EVENT_DIM1 = (64 + 64) * 6 + 1 + 1
+
+def encode_self_action1(board: Board, move: Optional[Move], capture: Optional[Square], my_color: Color):
+  t = torch.zeros(SELF_ACTION_EVENT_DIM1)
+  if capture:
+    t[(64 + 64) * 6] = 1.
+  if move is not None:
+    if not my_color: # black
+      m = Move(63 - move.from_square, 63 - move.to_square)
+    else:
+      m = move
+    piece = board.piece_at(move.from_square)
+    assert(piece is not None)
+    t[(piece.piece_type - 1) * (64 + 64) + m.from_square] = 1.
+    t[(piece.piece_type - 1) * (64 + 64) + 64 + m.to_square] = 1.
+  return t
+
+def encode_null_self_move1():
+  m = torch.zeros(SELF_ACTION_EVENT_DIM1)
+  m[(64 + 64) * 6 + 1] = 1.
+  return m
+
 # if a piece is detected, its prob on om is set to 1, otherwise 0 for the
 # sensed squares
 def update_sense1(om, sense_result: List[Tuple[Square, Optional[Piece]]]):
@@ -208,6 +249,27 @@ def update_sense2(om, sense_result: List[Tuple[Square, Optional[Piece]]], my_col
         om[:,x,y] = 0.
         om[piece.piece_type-1,x,y] = 1.
   return om
+
+SENSE_EVENT_DIM1 = 9 * 64 * (6 + 1)
+
+def encode_sense_result1(sense_result: List[Tuple[Square, Optional[Piece]]], my_color: Color):
+  m = torch.zeros(SENSE_EVENT_DIM1)
+  for i, r in enumerate(sense_result):
+    if not my_color: # black
+      s = 63 - r[0]
+    else:
+      s = r[0]
+    if r[1] is None:
+      d = 0
+    else:
+      d = r[1].piece_type
+    m[ i * (64 * (6 + 1)) + d * 64 + s ] = 1.
+  return m
+
+# value generated should technically be never used
+def encode_null_sense1():
+  m = torch.zeros(SENSE_EVENT_DIM1)
+  return m
 
 MOVE_MAP = {
   # N
@@ -4313,3 +4375,41 @@ def move_to_action_index3(move: Move, my_color: Color):
   rowd, cold = trow - frow, tcol - fcol
   move_dim = MOVE_MAP_MAP[m.from_square][(rowd, cold)]
   return move_dim
+
+def sense_idx_to_square(idx):
+  if   idx >= 30:
+    return idx - 30 + 49
+  elif idx >= 24:
+    return idx - 24 + 41
+  elif idx >= 18:
+    return idx - 18 + 33
+  elif idx >= 12:
+    return idx - 12 + 25
+  elif idx >= 6:
+    return idx - 6 + 17
+  else:
+    return idx + 9
+
+def is_valid_square_for_sense_idx(s: Square):
+  if s < 8 or s >= 56:
+    return False
+  if s % 8 == 0:
+    return False
+  if (s + 1) % 8 == 0:
+    return False
+  return True
+
+# assume square is encodable into sense index
+def square_to_sense_idx(s: Square):
+  if   s >= 49:
+    return s - 49 + 30
+  elif s >= 41:
+    return s - 41 + 24
+  elif s >= 33:
+    return s - 33 + 18
+  elif s >= 25:
+    return s - 25 + 12
+  elif s >= 17:
+    return s - 17 + 6
+  else:
+    return s - 9

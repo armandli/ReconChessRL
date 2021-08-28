@@ -6,7 +6,7 @@ from torch.optim import Adam
 
 from .rc_trainer import RCSelfTrainer
 
-from senseis.collectors.rc_sense_eb import RCSenseEC, RCSenseEB, combine_sense_ec
+from senseis.collectors.rc_sense_eb1 import RCSenseEC1, RCSenseEB1, combine_sense_ec1
 from senseis.collectors.rc_action_eb import RCActionEC, RCActionEB, combine_action_ec
 from senseis.encoders.rc_encoder1 import RCStateEncoder1, RCActionEncoder1, RCSenseEncoder1
 from senseis.models.rc_action_model1 import RCActionModel1
@@ -32,7 +32,7 @@ class RCQTrainer1(RCSelfTrainer):
 
   def create_agent(self):
     action_ec = RCActionEC()
-    sense_ec = RCSenseEC()
+    sense_ec = RCSenseEC1()
     if self.action_model is None:
       if path.exists(self.configuration.action_model_filename):
         self.action_model = torch.load(self.configuration.action_model_filename, map_location=self.configuration.device)
@@ -87,7 +87,7 @@ class RCQTrainer1(RCSelfTrainer):
     self.sense_ecs = []
 
   def learn_sense(self, episode):
-    sense_ec = combine_sense_ec(self.sense_ecs)
+    sense_ec = combine_sense_ec1(self.sense_ecs)
     sense_eb = sense_ec.to_dataset()
     sense_loader = data.DataLoader(sense_eb, batch_size=self.configuration.batchsize, shuffle=True, pin_memory=True, num_workers=0)
     optimizer = self.sense_optimizer()

@@ -1,11 +1,11 @@
 import torch
-from senseis.learning.rc_qconfig import SenseConfig
+from senseis.learning.rc_qconfig import SenseConfig1
 from senseis.learning.rc_sense_trainer1 import RCSenseTrainer1
 from senseis.reporters.rc_reporter import RCEpisodicReporter
 
 device = torch.device("cpu")
 
-config = SenseConfig(
+config = SenseConfig1(
     device=device,
     sense_model_filename='../models/rc_sense_model_v3.pt',
     episodes=20,

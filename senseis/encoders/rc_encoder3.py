@@ -84,7 +84,7 @@ class RCActionEncoder3:
     actions = []
     for i in range(m.shape[0]):
       action_idx = np.random.choice(self.dim, p=m[i].numpy())
-      move = decode_move_dim3(action_idx)
+      move = decode_move_dim3(action_idx, self.color)
       actions.append(move)
     return actions
 

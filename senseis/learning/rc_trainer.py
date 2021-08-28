@@ -4,6 +4,14 @@ from reconchess import play_local_game, LocalGame
 
 class RCSelfTrainer(ABC):
   @abstractmethod
+  def initialize(self):
+    pass
+
+  @abstractmethod
+  def teardown(self):
+    pass
+
+  @abstractmethod
   def episodes(self):
     pass
 
@@ -21,6 +29,7 @@ class RCSelfTrainer(ABC):
 
   def train(self):
     for e in range(self.episodes()):
+      self.initialize()
       agent1 = self.create_agent()
       agent2 = self.create_agent()
       game =LocalGame(900)
@@ -31,5 +40,6 @@ class RCSelfTrainer(ABC):
         print("Exception {}".format(e))
         game.end()
         return
+      self.teardown()
       if self.should_learn(e):
         self.learn(e)

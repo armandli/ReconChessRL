@@ -6,18 +6,18 @@ from torch.optim import Adam
 
 from .rc_trainer import RCSelfTrainer
 
-from senseis.collectors.rc_sense_eb import RCSenseEC, RCSenseEB, combine_sense_ec
+from senseis.collectors.rc_sense_eb1 import RCSenseEC1, RCSenseEB1, combine_sense_ec1
 from senseis.encoders.rc_encoder2 import RCSenseEncoder2
 from senseis.encoders.rc_encoder4 import RCStateEncoder4
 from senseis.models.rc_sense_model1 import RCSenseModel1
 from senseis.rewards.rc_sense_reward import rc_sense_reward1
 from senseis.agents.rc_troute_agent1 import RCTrouteAgent1
 from senseis.torch_modules.loss import PGError
-from senseis.learning.rc_qconfig import SenseConfig
+from senseis.learning.rc_qconfig import SenseConfig1
 
 
 class RCSenseTrainer1(RCSelfTrainer):
-  def __init__(self, config: SenseConfig, reporter):
+  def __init__(self, config: SenseConfig1, reporter):
     self.configuration = config
     self.sense_ecs  = []
     self.sense_model = None
@@ -28,7 +28,7 @@ class RCSenseTrainer1(RCSelfTrainer):
     return self.configuration.episodes
 
   def create_agent(self):
-    sense_ec = RCSenseEC()
+    sense_ec = RCSenseEC1()
     if self.sense_model is None:
       if path.exists(self.configuration.sense_model_filename):
         self.sense_model = torch.load(self.configuration.sense_model_filename, map_location=self.configuration.device)
@@ -66,7 +66,7 @@ class RCSenseTrainer1(RCSelfTrainer):
     self.sense_ecs = []
 
   def learn_sense(self, episode):
-    sense_ec = combine_sense_ec(self.sense_ecs)
+    sense_ec = combine_sense_ec1(self.sense_ecs)
     sense_eb = sense_ec.to_dataset()
     sense_loader = data.DataLoader(sense_eb, batch_size=self.configuration.batchsize, shuffle=True, pin_memory=True, num_workers=0)
     optimizer = self.sense_optimizer()

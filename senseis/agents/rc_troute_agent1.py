@@ -1,5 +1,6 @@
 from typing import Optional, List, Tuple
 import os
+from copy import copy
 from reconchess import Color, Player, Square, WinReason, GameHistory
 from chess import Board, Piece, Move
 from chess import engine
@@ -43,7 +44,7 @@ class RCTrouteAgent1(Player):
     self.color = color
     self.self_capture_count = 0
     self.oppo_capture_count = 0
-    self.board = board
+    self.board = copy(board)
 
   def handle_opponent_move_result(self, captured_my_piece: bool, capture_square: Optional[Square]):
     self.state_encoder.op_move_update(capture_square)
@@ -98,7 +99,9 @@ class RCTrouteAgent1(Player):
       self.self_capture_count += 1
     self.state_encoder.move_update(taken_move, capture_square)
     if taken_move is not None:
-      self.board.push(taken_move)
+      piece = self.board.piece_at(taken_move.from_square)
+      self.board.remove_piece_at(taken_move.from_square)
+      self.board.set_piece_at(taken_move.to_square, piece)
 
   def handle_game_end(self, winner_color: Optional[Color], win_reason: Optional[WinReason], game_history: GameHistory):
     try:

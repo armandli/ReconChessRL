@@ -37,7 +37,7 @@ class QConfig:
   snapshot_frequency: int = 0
 
 @dataclass
-class SenseConfig:
+class SenseConfig1:
   device: torch.device
   sense_model_filename: str
   episodes: int
@@ -47,5 +47,38 @@ class SenseConfig:
   learning_rate: float
   weight_decay: float
   pg_epsilon: float
+  sense_model_snapshot_prefix: str = None
+  snapshot_frequency: int = 0
+
+@dataclass
+class SenseConfig2:
+  device: torch.device
+  sense_model_filename: str
+  episodes: int
+  iterations: int
+  eb_size: int
+  batchsize: int
+  learning_rate: float
+  weight_decay: float
+  pg_epsilon: float
+  sense_hidden_size: int
+  sense_model_snapshot_prefix: str = None
+  snapshot_frequency: int = 0
+
+@dataclass
+class DaggerConfig:
+  device: torch.device
+  action_model_filename: str
+  sense_model_filename: str
+  episodes: int
+  iterations: int
+  eb_size: int
+  batchsize: int
+  learning_rate: float
+  weight_decay: float
+  pg_epsilon: float
+  sense_hidden_size: int
+  action_hidden_size: int
+  action_model_snapshot_prefix: str = None
   sense_model_snapshot_prefix: str = None
   snapshot_frequency: int = 0
