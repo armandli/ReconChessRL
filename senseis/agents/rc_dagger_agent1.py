@@ -1,6 +1,7 @@
 from typing import Optional, List, Tuple
 import os
 from copy import copy
+import random
 from reconchess import Color, Player, Square, WinReason, GameHistory
 from chess import Board, Piece, Move
 from chess import engine
@@ -107,9 +108,14 @@ class RCDaggerAgent1(Player):
       return action
     except engine.EngineTerminatedError:
       print("stockfish died")
+      stockfish_path = os.environ[STOCKFISH_ENV_VAR]
+      self.action_engine = engine.SimpleEngine.popen_uci(stockfish_path, setpgrp=True)
     except engine.EngineError:
       print("stockfish engine bad state at {}".format(self.board.fen()))
-    return None
+      stockfish_path = os.environ[STOCKFISH_ENV_VAR]
+      self.action_engine = engine.SimpleEngine.popen_uci(stockfish_path, setpgrp=True)
+    action = random.choice(move_action)
+    return action
 
   def _choose_model_move(self, move_action: List[Move], seconds_left: float) -> Optional[Move]:
     cst = self.state_encoder.encode()

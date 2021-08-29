@@ -1,6 +1,7 @@
 from typing import Optional, List, Tuple
 import os
 from copy import copy
+import random
 from reconchess import Color, Player, Square, WinReason, GameHistory
 from chess import Board, Piece, Move
 from chess import engine
@@ -90,9 +91,14 @@ class RCTrouteAgent1(Player):
         return action
     except engine.EngineTerminatedError as e:
       print("stockfish died: {}".format(e))
+      stockfish_path = os.environ[STOCKFISH_ENV_VAR]
+      self.action_engine = engine.SimpleEngine.popen_uci(stockfish_path, setpgrp=True)
     except engine.EngineError as e:
       print("stockfish engine bad state at {}".format(self.board.fen()))
-    return None
+      stockfish_path = os.environ[STOCKFISH_ENV_VAR]
+      self.action_engine = engine.SimpleEngine.popen_uci(stockfish_path, setpgrp=True)
+    action = random.choice(move_action)
+    return action
 
   def handle_move_result(self, requested_move: Optional[Move], taken_move: Optional[Move], captured_opponent_piece: bool, capture_square: Optional[Square]):
     if captured_opponent_piece:

@@ -84,8 +84,8 @@ class RCDaggerTrainer1(RCSelfTrainer):
       return False
 
   def learn(self, episode):
-    self.learn_sense()
-    self.learn_action()
+    self.learn_sense(episode)
+    self.learn_action(episode)
     self.sense_ec = RCSenseEC2()
     self.action_ec = RCActionEC3()
     if self.config.snapshot_frequency > 0 and episode / self.config.snapshot_frequency > self.snapshot_count:
@@ -97,10 +97,10 @@ class RCDaggerTrainer1(RCSelfTrainer):
       torch.save(self.action_model, self.config.action_model_filename)
       torch.save(self.sense_model, self.config.sense_model_filename)
 
-  def learn_sense(self):
+  def learn_sense(self, episode):
     sense_eb = self.sense_ec.to_dataset()
     sense_loader = data.DataLoader(sense_eb, batch_size=self.config.batchsize, shuffle=True, pin_memory=True, num_workers=0)
-    optimzier = self.sense_optimizer()
+    optimizer = self.sense_optimizer()
     loss = self.sense_loss()
     self.sense_model.train()
     for e in range(self.config.iterations):
@@ -130,8 +130,8 @@ class RCDaggerTrainer1(RCSelfTrainer):
   def sense_loss(self):
     return PGError()
 
-  def learn_action(self):
-    action_eb = self.action_eb.to_dataset()
+  def learn_action(self, episode):
+    action_eb = self.action_ec.to_dataset()
     action_loader = data.DataLoader(action_eb, batch_size=self.config.batchsize, shuffle=True, pin_memory=True, num_workers=0)
     optimizer = self.action_optimizer()
     loss = self.action_loss()
@@ -144,7 +144,7 @@ class RCDaggerTrainer1(RCSelfTrainer):
         cs, a = cs.to(self.config.device), a.to(self.config.device)
         h = self.action_model.init(batchsize).to(self.config.device)
         pi, _ = self.action_model(cs, h) # dim (b, S, A)
-        pi = pi.rehsape(pi.shape[0] * pi.shape[1], pi.shape[2])
+        pi = pi.reshape(pi.shape[0] * pi.shape[1], pi.shape[2])
         a = a.reshape(a.shape[0] * a.shape[1])
         l = loss(pi, a)
         l.backward()

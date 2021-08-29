@@ -4300,7 +4300,7 @@ def encode_move_type_dim2(move: Move, my_color: Color):
   move_dim = MOVE_MAP[(rowd, cold)]
   return move_dim
 
-def encode_move_type_dim3(move: Move, my_color: Color):
+def encode_move_type_dim3(move: Optional[Move], my_color: Color):
   if not my_color: # black
     m = Move(63 - move.from_square, 63 - move.to_square)
   else:
