@@ -207,9 +207,9 @@ def encode_self_action1(board: Board, move: Optional[Move], capture: Optional[Sq
     else:
       m = move
     piece = board.piece_at(move.from_square)
-    assert(piece is not None)
-    t[(piece.piece_type - 1) * (64 + 64) + m.from_square] = 1.
-    t[(piece.piece_type - 1) * (64 + 64) + 64 + m.to_square] = 1.
+    if piece is not None:
+      t[(piece.piece_type - 1) * (64 + 64) + m.from_square] = 1.
+      t[(piece.piece_type - 1) * (64 + 64) + 64 + m.to_square] = 1.
   return t
 
 def encode_null_self_move1():

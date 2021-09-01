@@ -52,8 +52,9 @@ class RCStateEncoder5:
     self.self_move = encode_self_action1(self.board, taken_move, captured_square, self.color)
     if taken_move is not None:
       piece = self.board.piece_at(taken_move.from_square)
-      self.board.remove_piece_at(taken_move.from_square)
-      self.board.set_piece_at(taken_move.to_square, piece)
+      if piece is not None:
+        self.board.remove_piece_at(taken_move.from_square)
+        self.board.set_piece_at(taken_move.to_square, piece)
 
   def op_move_update(self, captured_square: Optional[Square]):
     self.oppo_move = encode_oppo_result1(captured_square, self.color)

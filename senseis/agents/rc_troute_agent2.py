@@ -108,8 +108,9 @@ class RCTrouteAgent2(Player):
     self.state_encoder.move_update(taken_move, capture_square)
     if taken_move is not None:
       piece = self.board.piece_at(taken_move.from_square)
-      self.board.remove_piece_at(taken_move.from_square)
-      self.board.set_piece_at(taken_move.to_square, piece)
+      if piece is not None:
+        self.board.remove_piece_at(taken_move.from_square)
+        self.board.set_piece_at(taken_move.to_square, piece)
 
   def handle_game_end(self, winner_color: Optional[Color], win_reason: Optional[WinReason], game_history: GameHistory):
     try:

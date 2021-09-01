@@ -106,12 +106,14 @@ class RCDaggerAgent1(Player):
       result = self.action_engine.play(self.board, engine.Limit(time=0.5)) #TODO: use seconds left ?
       action = result.move
       return action
-    except engine.EngineTerminatedError:
-      print("stockfish died")
+    except engine.EngineTerminatedError as e:
+      print("stockfish died {}".format(e))
+      print("board\n{}".format(self.board))
       stockfish_path = os.environ[STOCKFISH_ENV_VAR]
       self.action_engine = engine.SimpleEngine.popen_uci(stockfish_path, setpgrp=True)
-    except engine.EngineError:
+    except engine.EngineError as e:
       print("stockfish engine bad state at {}".format(self.board.fen()))
+      print("board\n{}".format(self.board))
       stockfish_path = os.environ[STOCKFISH_ENV_VAR]
       self.action_engine = engine.SimpleEngine.popen_uci(stockfish_path, setpgrp=True)
     action = random.choice(move_action)
@@ -129,8 +131,9 @@ class RCDaggerAgent1(Player):
     self.state_encoder.move_update(taken_move, capture_square)
     if taken_move is not None:
       piece = self.board.piece_at(taken_move.from_square)
-      self.board.remove_piece_at(taken_move.from_square)
-      self.board.set_piece_at(taken_move.to_square, piece)
+      if piece is not None:
+        self.board.remove_piece_at(taken_move.from_square)
+        self.board.set_piece_at(taken_move.to_square, piece)
 
   def handle_game_end(self, winner_color: Optional[Color], win_reason: Optional[WinReason], game_history: GameHistory):
     try:
