@@ -7,7 +7,7 @@ class RCSenseModel2(nn.Module):
   def __init__(self, isz, osz, hsz, ssz):
     super(RCSenseModel2, self).__init__()
     self.hidden_size = hsz
-    self.rnn = nn.RNN(input_size=isz, hidden_size=hsz, num_layers=1, batch_first=True)
+    self.rnn = nn.RNN(input_size=isz, hidden_size=hsz, num_layers=ssz, batch_first=True)
     self.flayers = nn.Sequential(
         nn.Linear(hsz, osz),
         nn.Softmax(dim=2),
