@@ -271,6 +271,32 @@ def encode_null_sense1():
   m = torch.zeros(SENSE_EVENT_DIM1)
   return m
 
+def update_board_sense_result1(board: Board, sense_result: List[Tuple[Square, Optional[Piece]]], my_color: Color):
+  for square, piece in sense_result:
+    # if it's enemy king getting erased, we ignore until we detects the new location
+    curr_piece = board.piece_at(square)
+    if curr_piece is not None and curr_piece.piece_type == 7 and curr_piece.color != my_color:
+      if piece is None:
+        continue
+    # if it's enemy king, then we can safely remove the old king location
+    if piece is not None and piece.piece_type == 7 and piece.color != my_color:
+      king_square = board.king(not my_color)
+      board.remove_piece_at(king_square)
+    board.set_piece_at(square, piece)
+
+def update_board_self_move1(board: Board, taken_move: Optional[Move], capture_square: Optional[Square]):
+  if capture_square is not None:
+    board.remove_piece_at(capture_square)
+  if taken_move is not None:
+    piece = board.piece_at(taken_move.from_square)
+    if piece is not None:
+      board.remove_piece_at(taken_move.from_square)
+      board.set_piece_at(taken_move.to_square, piece)
+
+def update_board_oppo_move1(board: Board, captured_square: Optional[Square]):
+  if captured_square is not None:
+    board.remove_piece_at(captured_square)
+
 MOVE_MAP = {
   # N
   (1, 0): 0,

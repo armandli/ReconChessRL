@@ -6,6 +6,7 @@ from reconchess import Color, Player, Square, WinReason, GameHistory
 from chess import Board, Piece, Move
 from chess import engine
 import torch
+from senseis.encoders.rc_encoder_util import update_board_sense_result1, update_board_self_move1, update_board_oppo_move1
 
 # Stockfish immitation agent using Dagger
 
@@ -53,8 +54,7 @@ class RCDaggerAgent1(Player):
 
   def handle_opponent_move_result(self, captured_my_piece: bool, capture_square: Optional[Square]):
     self.state_encoder.op_move_update(capture_square)
-    if captured_my_piece:
-      self.board.remove_piece_at(capture_square)
+    update_board_oppo_move1(self.board, capture_square)
 
   def choose_sense(self, sense_action: List[Square], move_action: List[Move], seconds_left: float) -> Optional[Square]:
     with torch.no_grad():
@@ -69,8 +69,7 @@ class RCDaggerAgent1(Player):
 
   def handle_sense_result(self, sense_result: List[Tuple[Square, Optional[Piece]]]):
     self.state_encoder.sense_update(sense_result)
-    for square, piece in sense_result:
-      self.board.set_piece_at(square, piece)
+    update_board_sense_result1(self.board, sense_result, self.color)
     if self.sense_exp is not None:
       nst = self.state_encoder.encode()
       reward = self.sense_reward(self.sense_cst, nst)
@@ -129,11 +128,7 @@ class RCDaggerAgent1(Player):
 
   def handle_move_result(self, requested_move: Optional[Move], taken_move: Optional[Move], captured_opponent_piece: bool, capture_square: Optional[Square]):
     self.state_encoder.move_update(taken_move, capture_square)
-    if taken_move is not None:
-      piece = self.board.piece_at(taken_move.from_square)
-      if piece is not None:
-        self.board.remove_piece_at(taken_move.from_square)
-        self.board.set_piece_at(taken_move.to_square, piece)
+    update_board_self_move1(self.board, taken_move, capture_square)
 
   def handle_game_end(self, winner_color: Optional[Color], win_reason: Optional[WinReason], game_history: GameHistory):
     try:

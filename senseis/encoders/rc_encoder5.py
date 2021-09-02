@@ -4,7 +4,7 @@ from reconchess import Color
 from chess import Board, Piece, Move, Square
 import numpy as np
 import torch
-from .rc_encoder_util import encode_self_action1, encode_oppo_result1, encode_sense_result1, encode_null_self_move1, encode_null_oppo_move1, encode_null_sense1, encode_move_type_dim3, decode_move_dim3, move_to_action_index3, SELF_ACTION_EVENT_DIM1, OPPO_ACTION_EVENT_DIM1, SENSE_EVENT_DIM1, MOVE_MAP_SIZE_TOTAL, is_valid_square_for_sense_idx, square_to_sense_idx, sense_idx_to_square
+from .rc_encoder_util import encode_self_action1, encode_oppo_result1, encode_sense_result1, encode_null_self_move1, encode_null_oppo_move1, encode_null_sense1, encode_move_type_dim3, decode_move_dim3, move_to_action_index3, SELF_ACTION_EVENT_DIM1, OPPO_ACTION_EVENT_DIM1, SENSE_EVENT_DIM1, MOVE_MAP_SIZE_TOTAL, is_valid_square_for_sense_idx, square_to_sense_idx, sense_idx_to_square, update_board_sense_result1, update_board_self_move1, update_board_oppo_move1
 
 # instead of encoding the board, we'll focus encoding different types of events that has been detected by the agent
 # types of events:
@@ -45,21 +45,15 @@ class RCStateEncoder5:
 
   def sense_update(self, sense_result: List[Tuple[Square, Optional[Piece]]]):
     self.sense = encode_sense_result1(sense_result, self.color)
-    for square, piece in sense_result:
-      self.board.set_piece_at(square, piece)
+    update_board_sense_result1(self.board, sense_result, self.color)
 
   def move_update(self, taken_move: Optional[Move], captured_square: Optional[Square]):
     self.self_move = encode_self_action1(self.board, taken_move, captured_square, self.color)
-    if taken_move is not None:
-      piece = self.board.piece_at(taken_move.from_square)
-      if piece is not None:
-        self.board.remove_piece_at(taken_move.from_square)
-        self.board.set_piece_at(taken_move.to_square, piece)
+    update_board_self_move1(self.board, taken_move, captured_square)
 
   def op_move_update(self, captured_square: Optional[Square]):
     self.oppo_move = encode_oppo_result1(captured_square, self.color)
-    if captured_square is not None:
-      self.board.remove_piece_at(captured_square)
+    update_board_oppo_move1(self.board, captured_square)
 
   def encode_sense(self):
     m = torch.cat([self.color_vec, self.self_move, self.oppo_move], dim=0)
