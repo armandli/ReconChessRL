@@ -117,10 +117,16 @@ def gen_move_map_map(imap):
   print("INV_MOVE_MAP_MAP = {")
   for key, fsq, val in imap:
     print("  {}: ({}, {}),".format(key, fsq, val))
+  print("  1792: (64, ( 0, 0)),")
   print("}")
+
+def gen_none_move(move_count):
+  print("NONE_MOVE_IDX = {}".format(move_count))
+  print("")
 
 move_count = 0
 imap = []
 for i in range(0, 64):
   move_count, imap = gen_move_map(i, move_count, imap)
+gen_none_move(move_count)
 gen_move_map_map(imap)

@@ -449,8 +449,10 @@ INV_MOVE_MAP = {
   63: ( 2,  1),
 }
 
-MOVE_MAP_SIZE_TOTAL = 1792
+#last dim is none move
+MOVE_MAP_SIZE_TOTAL = 1793
 
+# add up to 1792
 MOVE_MAP_SIZE = {
   23, 24, 25, 25, 25, 25, 24, 23,
   24, 27, 29, 29, 29, 29, 27, 24,
@@ -2446,6 +2448,8 @@ MOVE_MAP_63 = {
   (-2,-1): 1791,
 }
 
+NONE_MOVE_IDX = 1792
+
 MOVE_MAP_MAP = {
   0: MOVE_MAP_0,
   1: MOVE_MAP_1,
@@ -4306,6 +4310,7 @@ INV_MOVE_MAP_MAP = {
   1789: (63, (-7,-7)),
   1790: (63, (-1,-2)),
   1791: (63, (-2,-1)),
+  1792: (64, ( 0, 0)),
 }
 
 def encode_move_type_dim1(move: Move):
@@ -4327,6 +4332,8 @@ def encode_move_type_dim2(move: Move, my_color: Color):
   return move_dim
 
 def encode_move_type_dim3(move: Optional[Move], my_color: Color):
+  if move is None:
+    return NONE_MOVE_IDX
   if not my_color: # black
     m = Move(63 - move.from_square, 63 - move.to_square)
   else:
@@ -4365,6 +4372,9 @@ def decode_move_dim2(from_square, move_type, my_color: Color):
 
 def decode_move_dim3(idx, my_color: Color):
   (from_square, (dx, dy)) = INV_MOVE_MAP_MAP[idx]
+  # 64th square doesn't exist, this is none move
+  if from_square == 64:
+    return None
   if not my_color: # black
     from_square = 63 - from_square
     dx, dy = dx * -1, dy * -1
@@ -4392,6 +4402,8 @@ def move_to_action_index2(move: Move, my_color: Color):
   return m.from_square * 64 + move_dim
 
 def move_to_action_index3(move: Move, my_color: Color):
+  if move is None:
+    return NONE_MOVE_IDX
   if not my_color: # black
     m = Move(63 - move.from_square, 63 - move.to_square)
   else:

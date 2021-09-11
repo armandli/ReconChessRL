@@ -82,3 +82,44 @@ class DaggerConfig:
   action_model_snapshot_prefix: str = None
   sense_model_snapshot_prefix: str = None
   snapshot_frequency: int = 0
+
+@dataclass
+class PGConfig:
+  device: torch.device
+  action_model_filename: str
+  sense_model_filename: str
+  episodes: int
+  iterations: int
+  eb_size: int
+  batchsize: int
+  learning_rate: float
+  weight_decay: float
+  pg_epsilon: float
+  action_hidden_size: int
+  sense_hidden_size: int
+  action_model_snapshot_prefix: str = None
+  sense_model_snapshot_prefix: str = None
+  snapshot_frequency: int = 0
+
+@dataclass
+class NFSPConfig:
+  device: torch.device
+  action_alpha_model_filename: str
+  action_beta_model_filename: str
+  sense_model_filename: str
+  episodes: int
+  iterations: int
+  eb_size: int
+  batchsize: int
+  learning_rate: float
+  weight_decay: float
+  pg_epsilon: float
+  mu: float
+  action_alpha_hidden_size: int
+  action_beta_hidden_size: int
+  sense_hidden_size: int
+  action_alpha_model_snapshot_prefix: str = None
+  action_beta_model_snapshot_prefix: str = None
+  sense_model_snapshot_prefix: str = None
+  snapshot_frequency: int = 0
+

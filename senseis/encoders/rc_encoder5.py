@@ -125,7 +125,7 @@ class RCSenseEncoder3:
   def dimension():
     return RCSenseEncoder3.dim
 
-# Policy Gradient Model action encoder/decoder using 1792 move dim, expecting sequence of actions in dim (b, S, A)
+# Policy Gradient Model action encoder/decoder using 1793 move dim, expecting sequence of actions in dim (b, S, A)
 class RCActionEncoder4:
   dim = MOVE_MAP_SIZE_TOTAL
 

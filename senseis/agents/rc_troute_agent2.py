@@ -65,12 +65,11 @@ class RCTrouteAgent2(Player):
       return action
 
   def handle_sense_result(self, sense_result: List[Tuple[Square, Optional[Piece]]]):
-    prev_board = copy(self.state_encoder.board)
+    prev_board = copy(self.board)
     self.state_encoder.sense_update(sense_result)
-    next_board = self.state_encoder.board
     update_board_sense_result1(self.board, sense_result, self.color)
     if self.sense_exp is not None:
-      reward = self.sense_reward(prev_board, next_board, self.color)
+      reward = self.sense_reward(prev_board, self.board, self.color)
       self.sense_exp.append_post(reward)
 
   def choose_move(self, move_action: List[Move], seconds_left: float) -> Optional[Move]:
