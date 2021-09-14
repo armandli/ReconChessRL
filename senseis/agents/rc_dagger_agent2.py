@@ -127,6 +127,10 @@ class RCDaggerAgent2(Player):
       print("board\n{}".format(self.board))
       stockfish_path = os.environ[STOCKFISH_ENV_VAR]
       self.action_engine = engine.SimpleEngine.popen_uci(stockfish_path, setpgrp=True)
+    except Exception as e:
+      print("Unknown exception! {}".format(e))
+      stockfish_path = os.environ[STOCKFISH_ENV_VAR]
+      self.action_engine = engine.SimpleEngine.popen_uci(stockfish_path, setpgrp=True)
     action = random.choice(move_action)
     return action
 
