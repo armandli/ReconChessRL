@@ -166,7 +166,7 @@ class RCNFSPTrainer1(RCSelfTrainer):
       loss = PGError()
       self.action_alpha_model[i].train()
       for e in range(self.config.iterations):
-        for i, (cs, a, r) in enumerate(action_loader):
+        for idx, (cs, a, r) in enumerate(action_loader):
           optimizer.zero_grad()
           batchsize = a.shape[0]
           cs, a, r = cs.to(self.config.device), a.to(self.config.device), r.to(self.config.device)
@@ -179,7 +179,7 @@ class RCNFSPTrainer1(RCSelfTrainer):
           l = loss(pi, r, self.config.pg_epsilon)
           l.backward()
           optimizer.step()
-          self.reporter.train_action_gather(episode, i, len(action_eb), l.item())
+          self.reporter.train_action_gather(episode, idx, len(action_eb), l.item())
 
   def learn_action_beta(self, episode):
     for i in range(2):
@@ -189,7 +189,7 @@ class RCNFSPTrainer1(RCSelfTrainer):
       loss = nn.CrossEntropyLoss()
       self.action_beta_model[i].train()
       for e in range(self.config.iterations):
-        for i, (cs, a) in enumerate(action_loader):
+        for idx, (cs, a) in enumerate(action_loader):
           optimizer.zero_grad()
           batchsize = a.shape[0]
           cs, a = cs.to(self.config.device), a.to(self.config.device)
@@ -200,4 +200,4 @@ class RCNFSPTrainer1(RCSelfTrainer):
           l = loss(pi, a)
           l.backward()
           optimizer.step()
-          self.reporter.train_action_gather(episode, 1, len(action_eb), l.item())
+          self.reporter.train_action_gather(episode, idx, len(action_eb), l.item())
