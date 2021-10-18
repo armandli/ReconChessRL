@@ -4,24 +4,29 @@ from reconchess import Color, Player, Square, WinReason, GameHistory
 from chess import Board, Piece, Move
 import torch
 
-from senseis.encoders.rc_encoder2 import RCStateEncoder2, RCActionEncoder2, RCSenseEncoder2
-from senseis.models.rc_sense_model1 import RCSenseModel1
-from senseis.models.rc_action_model2 import RCActionModel2
+# NFSP Best Action Agent Agent
 
-import senseis.agents.rc_qagent2 as agent
+from senseis.encoders.rc_encoder5 import RCStateEncoder5, RCActionEncoder4, RCSenseEncoder3
+from senseis.models.rc_sense_model2 import RCSenseModel2
+from senseis.models.rc_action_model4 import RCActionModel4
 
-class RCAgent2(Player):
+import senseis.agents.rc_nfsp_agent1 as agent
+
+class RCAgent5(Player):
   def __init__(self):
-    device = torch.device('cpu')
-    action_model = torch.load('models/rc_action_model2.pt', map_location=device)
-    sense_model = torch.load('models/rc_sense_model2.pt', map_location=device)
-    self.agent = agent.RCQAgent2(
-      RCStateEncoder2(),
-      RCActionEncoder2(),
-      RCSenseEncoder2(),
-      action_model,
-      sense_model,
-      device
+    device = torch.device("cpu")
+    action_alpha_model = torch.load('models/rc_action_alpha_model_v7_1.pt', map_location=device)
+    action_beta_model = torch.load('models/rc_action_beta_model_v7_1.pt', map_location=device)
+    sense_model = torch.load('models/rc_sense_model_v7.pt', map_location=device)
+    self.agent = agent.RCNFSPAgent1(
+        RCStateEncoder5(),
+        RCActionEncoder4(),
+        RCSenseEncoder3(),
+        action_alpha_model,
+        action_beta_model,
+        sense_model,
+        device,
+        True
     )
 
   def handle_game_start(self, color: Color, board: Board, opponent_name: str):

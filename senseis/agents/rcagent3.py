@@ -4,24 +4,29 @@ from reconchess import Color, Player, Square, WinReason, GameHistory
 from chess import Board, Piece, Move
 import torch
 
-from senseis.encoders.rc_encoder2 import RCStateEncoder2, RCActionEncoder2, RCSenseEncoder2
-from senseis.models.rc_sense_model1 import RCSenseModel1
-from senseis.models.rc_action_model2 import RCActionModel2
+# Agent Trained with Dagger
 
-import senseis.agents.rc_qagent2 as agent
+from senseis.encoders.rc_encoder5 import RCStateEncoder5
+from senseis.encoders.rc_encoder5 import RCSenseEncoder3
+from senseis.encoders.rc_encoder5 import RCActionEncoder4
+from senseis.models.rc_sense_model2 import RCSenseModel2
+from senseis.models.rc_action_model4 import RCActionModel4
 
-class RCAgent2(Player):
+import senseis.agents.rc_dagger_agent2 as agent
+
+class RCAgent3(Player):
   def __init__(self):
-    device = torch.device('cpu')
-    action_model = torch.load('models/rc_action_model2.pt', map_location=device)
-    sense_model = torch.load('models/rc_sense_model2.pt', map_location=device)
-    self.agent = agent.RCQAgent2(
-      RCStateEncoder2(),
-      RCActionEncoder2(),
-      RCSenseEncoder2(),
-      action_model,
-      sense_model,
-      device
+    device = torch.device("cpu")
+    action_model = torch.load('models/rc_action_model_v5.pt', map_location=device)
+    sense_model = torch.load('models/rc_sense_model_v5.pt', map_location=device)
+    self.agent = agent.RCDaggerAgent2(
+        RCStateEncoder5(),
+        RCActionEncoder4(),
+        RCSenseEncoder3(),
+        action_model,
+        sense_model,
+        device,
+        choose_engine=False,
     )
 
   def handle_game_start(self, color: Color, board: Board, opponent_name: str):
